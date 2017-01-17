@@ -14,9 +14,7 @@
 
 @implementation ViewController{
     //NSMutableArray *data,*data2;
-    NSMutableArray *item;
-    BOOL item_checked[10];
-    
+    //BOOL item_checked[10];
 }
 
 - (void)viewDidLoad {
@@ -43,56 +41,82 @@
     data_obj4.time=@"123456";
     data_obj4.image=@"test.jpg";
     data_obj4.conetnt=@"content4";
-    item=[NSMutableArray arrayWithObjects:data_obj1,data_obj2,data_obj3,data_obj4, nil];
-    //    data=[NSMutableArray arrayWithObjects:@"test1",@"test2",@"test3",@"test1",@"test2",@"test3",@"test1",@"test2",@"test3", nil];
-    //    data2=[NSMutableArray arrayWithObjects:@"123",@"456",@"789",@"123",@"456",@"789",@"123",@"456",@"789", nil];
-    [self.tableView setContentInset:UIEdgeInsetsMake(20,self.tableView.contentInset.left,self.tableView.contentInset.bottom,self.tableView.contentInset.right)];
+    self.allItems=[NSMutableArray arrayWithObjects:data_obj1,data_obj2,data_obj3,data_obj4, nil];
+    self.filteredItems = [[NSMutableArray alloc] init];
+    self.displayedItems=self.allItems;
+    self.searchController = [[UISearchController alloc] initWithSearchResultsController:nil];
+    self.searchController.searchResultsUpdater = self;
+    self.searchController.dimsBackgroundDuringPresentation = NO;
+    self.searchController.searchBar.delegate = self;
+    self.tableView.tableHeaderView = self.searchController.searchBar;
+    self.definesPresentationContext = YES;
+//    data=[NSMutableArray arrayWithObjects:@"test1",@"test2",@"test3",@"test1",@"test2",@"test3",@"test1",@"test2",@"test3", nil];
+//    data2=[NSMutableArray arrayWithObjects:@"123",@"456",@"789",@"123",@"456",@"789",@"123",@"456",@"789", nil];
+//    [self.tableView setContentInset:UIEdgeInsetsMake(20,self.tableView.contentInset.left,self.tableView.contentInset.bottom,self.tableView.contentInset.right)];
 }
+-(void)updateSearchResultsForSearchController:(UISearchController *)searchController{
+    NSLog(@"updateSearchResultsForSearchController");
+    NSString *searchString = searchController.searchBar.text;
+    NSLog(@"searchString=%@", searchString);
+    if (![searchString isEqualToString:@""]) {
+        [self.filteredItems removeAllObjects];
+        for (int i ;i<self.allItems.count;i++) {
+            Data *data=[self.allItems objectAtIndex:i];
+            NSString *str=data.name;
+            if ([searchString isEqualToString:@""] || [str localizedCaseInsensitiveContainsString:searchString] == YES) {
+                NSLog(@"str=%@", str);
+                [self.filteredItems addObject:data];
+            }
+        }
+        self.displayedItems = self.filteredItems;
+    }
+    else {
+        self.displayedItems = self.allItems;
+    }
+    [self.tableView reloadData];
+}
+
 -(NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section{
     NSLog(@"numberOfRowsInSection");
-    return [item count];
+    return [self.displayedItems count];
 }
--(void) tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath{
-    [item removeObjectAtIndex:indexPath.row];
-    [tableView reloadData];
-}
+
 -(UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath{
     NSLog(@"cellForRowAtIndexPath");
     static NSString *simpleidentifier=@"customcell";
     Customcell *cell=[tableView dequeueReusableCellWithIdentifier:simpleidentifier];
     if(cell==nil){
         cell=[[Customcell alloc]initWithStyle:UITableViewCellStyleDefault reuseIdentifier:simpleidentifier];
-        
     }
-    Data *data=[item objectAtIndex:indexPath.row];
+    Data *data=[self.displayedItems objectAtIndex:indexPath.row];
     cell.name.text=data.name;
     cell.time.text=data.time;
     cell.image.image=[UIImage imageNamed:data.image];
-    if(item_checked[indexPath.row]){
-        cell.accessoryType=UITableViewCellAccessoryCheckmark;
-    }else{
-        cell.accessoryType=UITableViewCellAccessoryNone;
-    }
+//    if(item_checked[indexPath.row]){
+//        cell.accessoryType=UITableViewCellAccessoryCheckmark;
+//    }else{
+//        cell.accessoryType=UITableViewCellAccessoryNone;
+//    }
     return cell;
 }
 -(void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath{
-    Data *data=[item objectAtIndex:indexPath.row];
+    Data *data=[self.displayedItems objectAtIndex:indexPath.row];
     NSString *name =data.name;
     UITableViewCell *cell=[tableView cellForRowAtIndexPath:indexPath];
-    if(item_checked[indexPath.row]){
-        cell.accessoryType=UITableViewCellAccessoryNone;
-        item_checked[indexPath.row]=NO;
-    }else{
-        cell.accessoryType=UITableViewCellAccessoryCheckmark;
-        item_checked[indexPath.row]=YES;
-    }
+//    if(item_checked[indexPath.row]){
+//        cell.accessoryType=UITableViewCellAccessoryNone;
+//        item_checked[indexPath.row]=NO;
+//    }else{
+//        cell.accessoryType=UITableViewCellAccessoryCheckmark;
+//        item_checked[indexPath.row]=YES;
+//    }
     
     [tableView deselectRowAtIndexPath:indexPath animated:YES];
 }
 -(void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender{
     if([segue.identifier isEqualToString:@"gotodetail"]){
         NSIndexPath *indexpath=[self.tableView indexPathForSelectedRow];
-        Data *data=[item objectAtIndex:indexpath.row];
+        Data *data=[self.displayedItems objectAtIndex:indexpath.row];
         ViewDetailController *detail=segue.destinationViewController;
         detail.data=data;
     }

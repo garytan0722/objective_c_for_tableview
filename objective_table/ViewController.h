@@ -9,7 +9,11 @@
 #import <UIKit/UIKit.h>
 #import "Customcell.h"
 #import "ViewDetailController.h"
-@interface ViewController : UITableViewController<UITableViewDataSource,UITableViewDelegate>
+@interface ViewController : UITableViewController<UITableViewDataSource,UITableViewDelegate,UISearchBarDelegate, UISearchControllerDelegate, UISearchResultsUpdating>
+@property (nonatomic, strong) UISearchController * searchController;
+@property (nonatomic, strong) NSMutableArray * allItems;
+@property (nonatomic, strong) NSMutableArray * filteredItems;
+@property (nonatomic, weak) NSArray * displayedItems;
 
 
 @end
